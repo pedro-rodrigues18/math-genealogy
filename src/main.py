@@ -20,7 +20,6 @@ HEADER = {"x-access-token": API_KEY}
 # Configurações de otimização
 MAX_WORKERS = 10  # Número de requisições paralelas
 CACHE_FILE = "cache_brazil_data.json"
-USE_RANGE_ENDPOINT = True
 
 def save_cache(data, filename=CACHE_FILE):
     """Salva dados em cache"""
@@ -87,55 +86,6 @@ def fetch_all_mathematicians_parallel(ids, max_workers=MAX_WORKERS):
                 mathematicians_data.append(result)
     
     return mathematicians_data
-
-def fetch_using_range_strategy(ids):
-    """
-    Usa uma estratégia alternativa: usar endpoint de range quando IDs são consecutivos
-    Muito mais rápido para blocos grandes de IDs
-    """
-    if not ids:
-        return []
-    
-    ids_sorted = sorted(ids)
-    ranges = []
-    current_range = [ids_sorted[0], ids_sorted[0]]
-    
-    for i in range(1, len(ids_sorted)):
-        if ids_sorted[i] == current_range[1] + 1:
-            current_range[1] = ids_sorted[i]
-        else:
-            ranges.append(current_range)
-            current_range = [ids_sorted[i], ids_sorted[i]]
-    ranges.append(current_range)
-    
-    print(f"   Identificados {len(ranges)} ranges de IDs")
-    
-    all_data = {}
-    
-    for start, end in tqdm(ranges, desc="   Buscando ranges"):
-        range_size = end - start + 1
-        
-        if range_size > 5:
-            try:
-                data = get_mathematician_range(start, end + 1)
-                all_data.update(data)
-            except Exception as e:
-                print(f"\n   Erro no range {start}-{end}: {e}")
-                for id_val in range(start, end + 1):
-                    if id_val in ids:
-                        try:
-                            all_data[str(id_val)] = get_mathematician_details(id_val)
-                        except:
-                            pass
-        else:
-            for id_val in range(start, end + 1):
-                if id_val in ids:
-                    try:
-                        all_data[str(id_val)] = get_mathematician_details(id_val)
-                    except:
-                        pass
-    
-    return list(all_data.values())
 
 def extract_advisor_info(academic_data):
     """Extrai informações dos orientadores"""
@@ -206,17 +156,13 @@ def main():
         print("\n[2/6] Buscando detalhes de cada matemático...")
         print("   Escolha o método:")
         print("   1. Paralelo (rápido, múltiplas requisições simultâneas)")
-        print("   2. Range (muito rápido se IDs forem consecutivos)")
-        print("   3. Sequencial (lento, mas seguro)")
+        print("   2. Sequencial (lento, mas seguro)")
         
-        choice = input("   Opção (1/2/3) [padrão=1]: ").strip() or "1"
+        choice = input("   Opção (1/2) [padrão=1]: ").strip() or "1"
         
         if choice == "1":
             print(f"   Usando método PARALELO com {MAX_WORKERS} workers")
             mathematicians_data = fetch_all_mathematicians_parallel(brazil_ids, MAX_WORKERS)
-        elif choice == "2":
-            print("   Usando método RANGE")
-            mathematicians_data = fetch_using_range_strategy(brazil_ids)
         else:
             print("   Usando método SEQUENCIAL")
             mathematicians_data = []

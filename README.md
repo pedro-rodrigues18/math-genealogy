@@ -85,9 +85,8 @@ O script realiza as seguintes etapas:
 
 1. **Busca IDs de matemáticos formados no Brasil** - Consulta a API do MGP para obter todos os IDs de matemáticos que se formaram no Brasil.
 
-2. **Busca detalhes de cada matemático** - Oferece três métodos de busca:
+2. **Busca detalhes de cada matemático** - Oferece dois métodos de busca:
    - **Paralelo** (padrão): Múltiplas requisições simultâneas (rápido)
-   - **Range**: Usa endpoint de range quando IDs são consecutivos (muito rápido)
    - **Sequencial**: Uma requisição por vez (lento, mas seguro)
 
 3. **Análise de orientadores** - Identifica os matemáticos que mais orientaram alunos no Brasil.
